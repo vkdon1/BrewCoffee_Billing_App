@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Billing App</title>
+    <style>
+        body {
+            background-image: url('background.avif');
+            font-family: Arial, sans-serif;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .Heading {
+            text-align: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .bill-container {
+            width: 50%;
+            background-color: rgba(255, 255, 255, 0.134);
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 5px solid black;
+            color: white;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .cards {
+            height: 150px;
+            width: 150px;
+            background-color: white;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .goldCard { background-color: gold; }
+        .silverCard { background-color: silver; }
+        .regularCard { background-color: rgb(199, 199, 199); }
+        .selected { border: 3px solid black; }
+        .inputfield {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .labels {
+            color: white;
+            font-size: large;
+            font-weight: bold;
+        }
+        .calculateBill {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid gold;
+            margin-top: 10px;
+            background-color: gold;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .result {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            margin-top: 20px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="Heading">Coffee Billing App</h1>
+    <h2 class="Heading">"Brewed to Perfection, Served with Passion."</h2>
+
+    <div class="container">
+        <div class="cards goldCard" onclick="selectMembership('gold', this)">Gold Member</div>
+        <div class="cards silverCard" onclick="selectMembership('silver', this)">Silver Member</div>
+        <div class="cards regularCard" onclick="selectMembership('regular', this)">Regular Member</div>
+    </div>
+
+    <div class="bill-container">
+        <h2>Coffee Bill</h2>
+        <label class="labels">Coffee Type:</label>
+        <select id="coffeeName" class="inputfield">
+            <option value="latte">Latte</option>
+            <option value="cappuccino">Cappuccino</option>
+            <option value="americano">Americano</option>
+            <option value="mocha">Mocha</option>
+        </select>
+
+        <label class="labels">Coffee Size:</label>
+        <select id="coffeeSize" class="inputfield">
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+        </select>
+
+        <label class="labels">Quantity:</label>
+        <input type="number" id="quantity" class="inputfield" value="1" min="1">
+
+        <label class="labels">Add-ons:</label><br>
+        <input type="checkbox" name="addOns" value="1.25"> Extra Shot ($1.25) <br>
+        <input type="checkbox" name="addOns" value="0.25"> Sugar ($0.25) <br>
+        <input type="checkbox" name="addOns" value="1"> Cream ($1.00) <br>
+
+        <label class="labels">Promo Code:</label>
+        <input type="text" id="promoCode" class="inputfield" placeholder="Enter Promo Code">
+
+        <button class="calculateBill" onclick="calculateBill()">Calculate Bill</button>
+
+        <div class="result">
+            <h3>Bill Summary</h3>
+            <p><strong>Coffee Name:</strong> <span id="resultCoffeeName"></span></p>
+            <p><strong>Coffee Size:</strong> <span id="resultCoffeeSize"></span></p>
+            <p><strong>Quantity:</strong> <span id="resultQuantity"></span></p>
+            <p><strong>Tax (5%):</strong> <span id="tax"></span></p>
+            <p><strong>Discount:</strong> <span id="discount"></span></p>
+            <h2><strong>Total Amount:</strong> <span id="totalAmount"></span></h2>
+        </div>
+    </div>
+
+    <script>
+        let selectedMembership = "regular";
+
+        function selectMembership(type, element) {
+            document.querySelectorAll(".cards").forEach(card => card.classList.remove("selected"));
+            element.classList.add("selected");
+            selectedMembership = type;
+        }
+
+        function calculateBill() {
+            let coffeeName = document.getElementById("coffeeName").value;
+            let coffeeSize = document.getElementById("coffeeSize").value;
+            let quantity = parseInt(document.getElementById("quantity").value);
+            let basePrice = getBasePrice(coffeeName, coffeeSize);
+            let addOnsCost = getAddOnsCost();
+            let subTotal = (basePrice + addOnsCost) * quantity;
+            let discount = getDiscount(subTotal, selectedMembership);
+            let tax = subTotal * 0.05; // 5% tax
+            let totalAmount = subTotal - discount + tax;
+
+            document.getElementById("resultCoffeeName").innerText = coffeeName;
+            document.getElementById("resultCoffeeSize").innerText = coffeeSize;
+            document.getElementById("resultQuantity").innerText = quantity;
+            document.getElementById("tax").innerText = `$${tax.toFixed(2)}`;
+            document.getElementById("discount").innerText = `$${discount.toFixed(2)}`;
+            document.getElementById("totalAmount").innerText = `$${totalAmount.toFixed(2)}`;
+        }
+
+        function getBasePrice(coffee, size) {
+            const prices = {
+                latte: { small: 3, medium: 4, large: 5 },
+                cappuccino: { small: 3.5, medium: 4.5, large: 5.5 },
+                americano: { small: 2.5, medium: 3.5, large: 4.5 },
+                mocha: { small: 4, medium: 5, large: 6 }
+            };
+            return prices[coffee][size] || 0;
+        }
+
+        function getAddOnsCost() {
+            return [...document.querySelectorAll("input[name='addOns']:checked")].reduce((sum, el) => sum + parseFloat(el.value), 0);
+        }
+
+        function getDiscount(subTotal, membership) {
+            const rates = { gold: 0.2, silver: 0.1, regular: 0 };
+            return subTotal * rates[membership];
+        }
+    </script>
+</body>
+</html>
